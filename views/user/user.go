@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/SandeepTukkunor/loan_management_system/internal/db"
 	"github.com/dgrijalva/jwt-go"
@@ -12,6 +13,7 @@ import (
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/SandeepTukkunor/loan_management_system/internal/config"
 	"github.com/SandeepTukkunor/loan_management_system/models"
 )
 
@@ -103,6 +105,7 @@ func SignUp(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+
 	conn, err := db.ConnectDB()
 	if err != nil {
 		log.Fatal(err)
@@ -131,13 +134,63 @@ func Login(c *gin.Context) {
 	}
 	// Generate JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": user.Email,
+
+		"sub": user.UserID,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	})
-	fmt.Println(token)
+
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//// Sign the token with a secret key
+	tokenString, err := token.SignedString([]byte(cfg.SecretKey.Key))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	//set up cookie
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("Authorization", tokenString, 3600, "/", "localhost", false, true)
 
 	//close the connection
 	defer conn.Close()
 
-	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully", "Token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "User logged in successfully"})
 
 }
+
+func ValidateToken(c *gin.Context) {
+	//get the token from the request
+	tokenString, err := c.Cookie("Authorization")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized Bhai"})
+		return
+	}
+	//parse the token
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		cfg, err := config.LoadConfig()
+		if err != nil {
+			return nil, err
+		}
+		return []byte(cfg.SecretKey.Key), nil
+	})
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+	//check if the token is valid
+	if token.Valid {
+		c.JSON(http.StatusOK, gin.H{"message": "Token is valid"})
+	} else {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	}
+}
+
+func Logout(c *gin.Context) {
+	c.SetCookie("Authorization", "", -	1, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
+}	
