@@ -163,6 +163,9 @@ func Login(c *gin.Context) {
 }
 
 func ValidateToken(c *gin.Context) {
+
+	// get userId from middleware
+	userID, _ := c.Get("userId")
 	//get the token from the request
 	tokenString, err := c.Cookie("Authorization")
 	if err != nil {
@@ -184,13 +187,13 @@ func ValidateToken(c *gin.Context) {
 	}
 	//check if the token is valid
 	if token.Valid {
-		c.JSON(http.StatusOK, gin.H{"message": "Token is valid"})
+		c.JSON(http.StatusOK, gin.H{"message": userID})
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 	}
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie("Authorization", "", -	1, "/", "localhost", false, true)
+	c.SetCookie("Authorization", "", -1, "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "User logged out successfully"})
-}	
+}
