@@ -1,8 +1,9 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/SandeepTukkunor/loan_management_system/middleware"
 	"github.com/SandeepTukkunor/loan_management_system/views/user"
+	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter() *gin.Engine {
@@ -14,7 +15,11 @@ func SetupRouter() *gin.Engine {
 		})
 	})
 
+	// User routes
 	r.POST("/signup", user.SignUp)
+	r.POST("/login", user.Login)
+	r.GET("/validate", middleware.RequireAuth, user.ValidateToken)
+	r.POST("/logout", user.Logout)
 
 	return r
 }

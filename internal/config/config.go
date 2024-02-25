@@ -12,6 +12,11 @@ type Config struct {
 		Password string `mapstructure:"password"`
 		DBName   string `mapstructure:"dbname"`
 	} `mapstructure:"database"`
+
+
+	SecretKey struct {
+		Key string `mapstructure:"key"`
+	}
 }
 
 func LoadConfig() (*Config, error) {
@@ -29,5 +34,6 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &config, nil
+	
 
 }
