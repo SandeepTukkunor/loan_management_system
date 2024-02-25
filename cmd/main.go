@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
 
 	"github.com/SandeepTukkunor/loan_management_system/internal/db"
+	"github.com/SandeepTukkunor/loan_management_system/routes"
 	_ "github.com/lib/pq"
 )
 
@@ -18,13 +19,9 @@ func main() {
 
 	fmt.Println("Connected to the database", conn)
 
-	r := gin.Default()
+	r := routes.SetupRouter()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "ping",
-		})
-	})
+    // Start the server
+    r.Run()
 
-	r.Run() // listen and serve on 0.0.0.0:8080
 }
