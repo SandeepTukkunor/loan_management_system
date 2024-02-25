@@ -1,0 +1,12 @@
+# FILEPATH: /home/sandeep/golang/lms/migrate.toml
+
+# Database connection details
+[database]
+driver = "postgres"
+url = "postgres://postgres:sandeep@localhost:5432/lms_local"
+
+# Migration settings
+[migration]
+dir = "migrations"
+table = "migrations"
+
